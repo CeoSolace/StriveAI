@@ -2,13 +2,16 @@
   "name": "striveai",
   "version": "1.0.0",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.19.2",
     "cors": "^2.8.5",
+    "mongoose": "^8.5.0",
     "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0-rc.12",
+    "mathjs": "^13.0.0"
   }
 }

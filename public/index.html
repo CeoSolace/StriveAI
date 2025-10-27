@@ -3,117 +3,423 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>striveAI</title>
+  <title>striveAI — The Future of Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: 20px auto; padding: 0 10px; }
-    input, button { padding: 8px; margin: 5px 0; }
-    #login, #chatUI { display: none; }
-    #chatBox { height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: auto; margin: 10px 0; }
-    .msg { margin: 8px 0; }
-    .user { color: blue; }
-    .ai { color: green; }
-    .error { color: red; }
+    :root {
+      --bg: #0a0a0f;
+      --card: rgba(20, 20, 35, 0.6);
+      --border: rgba(100, 100, 255, 0.2);
+      --text: #e0e0ff;
+      --text-muted: #aaa;
+      --primary: #6e56ff;
+      --primary-glow: #8a6eff;
+      --success: #4ade80;
+      --error: #ff6b6b;
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 60px rgba(110, 86, 255, 0.1);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, transparent, rgba(110, 86, 255, 0.05));
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.4),
+        0 0 80px rgba(110, 86, 255, 0.2);
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #6e56ff, #a78bff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 24px 0 16px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 16px;
+      background: var(--primary);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 0 30px var(--primary-glow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px var(--primary-glow); }
+      50% { box-shadow: 0 0 40px var(--primary-glow), 0 0 60px rgba(110, 86, 255, 0.4); }
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      margin: 10px 0;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 16px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(110, 86, 255, 0.2);
+      transform: scale(1.02);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      background: linear-gradient(135deg, var(--primary), #8a6eff);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(110, 86, 255, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: var(--glass);
+      border-color: var(--primary);
+    }
+
+    .link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .msg {
+      margin: 12px 0;
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 85%;
+      word-wrap: break-word;
+      animation: fadeIn 0.4s ease;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .user {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    .error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+      font-size: 14px;
+      text-align: center;
+      margin: 16px 0;
+    }
+
+    #chatBox {
+      height: 400px;
+      overflow-y: auto;
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #chatBox::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chatBox::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #chatBox::-webkit-scrollbar-thumb {
+      background: rgba(110, 86, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .input-group input {
+      flex: 1;
+      margin: 0;
+    }
+
+    .input-group button {
+      width: auto;
+      padding: 0 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    .text-center { text-align: center; }
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px; }
+      h2 { font-size: 24px; }
+      .input-group { flex-direction: column; }
+      .input-group button { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <h2>striveAI — No External APIs</h2>
+  <div class="container">
+    <div class="card" id="authCard">
+      <div class="logo">AI</div>
+      <h2>striveAI</h2>
+      <p class="text-center" style="color:var(--text-muted); margin-bottom:24px;">
+        Intelligent. Private. Yours.
+      </p>
 
-  <div id="login">
-    <h3>Log In</h3>
-    <input type="text" id="loginUser" placeholder="Username" />
-    <input type="password" id="loginPass" placeholder="Password" />
-    <button onclick="login()">Log In</button>
-    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
-    <div id="loginMsg"></div>
-  </div>
+      <!-- Login -->
+      <div id="login">
+        <h3>Welcome Back</h3>
+        <input type="text" id="loginUser" placeholder="Username" />
+        <input type="password" id="loginPass" placeholder="Password" />
+        <button onclick="login()">Log In</button>
+        <p class="text-center mt-1">
+          No account? <a href="#" class="link" onclick="showSignup()">Sign Up</a>
+        </p>
+        <div id="loginMsg"></div>
+      </div>
 
-  <div id="signup" style="display:none;">
-    <h3>Sign Up</h3>
-    <input type="text" id="signupUser" placeholder="Username" />
-    <input type="password" id="signupPass" placeholder="Password (min 6 chars)" />
-    <button onclick="signup()">Sign Up</button>
-    <p>Already have an account? <a href="#" onclick="showLogin()">Log In</a></p>
-    <div id="signupMsg"></div>
-  </div>
+      <!-- Signup -->
+      <div id="signup" class="hidden">
+        <h3>Create Account</h3>
+        <input type="text" id="signupUser" placeholder="Choose Username" />
+        <input type="password" id="signupPass" placeholder="Password (6+ chars)" />
+        <button onclick="signup()">Sign Up</button>
+        <p class="text-center mt-1">
+          Have an account? <a href="#" class="link" onclick="showLogin()">Log In</a>
+        </p>
+        <div id="signupMsg"></div>
+      </div>
+    </div>
 
-  <div id="chatUI">
-    <h3>Chat with striveAI</h3>
-    <div id="chatBox"></div>
-    <input type="text" id="userMsg" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMsg()" />
-    <button onclick="sendMsg()">Send</button>
-    <button onclick="logout()">Log Out</button>
+    <!-- Chat UI -->
+    <div class="card hidden" id="chatCard">
+      <div class="logo">AI</div>
+      <h2>striveAI</h2>
+      <div id="chatBox"></div>
+      
+      <div class="input-group">
+        <input type="text" id="userMsg" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter') sendMsg()" />
+        <button onclick="sendMsg()">Send</button>
+      </div>
+      
+      <div class="mt-2 text-center">
+        <button class="secondary" onclick="logout()">Log Out</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    let token = localStorage.getItem('striveai_token');
+    const token = localStorage.getItem('striveai_token');
     if (token) showChat(); else showLogin();
 
     function showLogin() {
-      document.getElementById('login').style.display = 'block';
-      document.getElementById('signup').style.display = 'none';
-      document.getElementById('chatUI').style.display = 'none';
+      document.getElementById('login').classList.remove('hidden');
+      document.getElementById('signup').classList.add('hidden');
+      document.getElementById('authCard').classList.remove('hidden');
+      document.getElementById('chatCard').classList.add('hidden');
     }
+
     function showSignup() {
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('signup').style.display = 'block';
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('signup').classList.remove('hidden');
     }
+
     function showChat() {
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('signup').style.display = 'none';
-      document.getElementById('chatUI').style.display = 'block';
+      document.getElementById('authCard').classList.add('hidden');
+      document.getElementById('chatCard').classList.remove('hidden');
       loadChat();
     }
 
     async function login() {
-      const u = document.getElementById('loginUser').value;
+      const u = document.getElementById('loginUser').value.trim();
       const p = document.getElementById('loginPass').value;
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      });
+      if (!u || !p) return showError('loginMsg', 'Fill all fields');
+
+      const res = await fetch('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) });
       const data = await res.json();
       if (data.token) {
         localStorage.setItem('striveai_token', data.token);
         showChat();
       } else {
-        document.getElementById('loginMsg').innerHTML = `<span class="error">${data.error || 'Login failed'}</span>`;
+        showError('loginMsg', data.error || 'Login failed');
       }
     }
 
     async function signup() {
-      const u = document.getElementById('signupUser').value;
+      const u = document.getElementById('signupUser').value.trim();
       const p = document.getElementById('signupPass').value;
-      const res = await fetch('/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      });
+      if (!u || p.length < 6) return showError('signupMsg', 'Username + 6+ char password');
+      
+      const res = await fetch('/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) });
       const data = await res.json();
       if (data.token) {
         localStorage.setItem('striveai_token', data.token);
         showChat();
       } else {
-        document.getElementById('signupMsg').innerHTML = `<span class="error">${data.error || 'Signup failed'}</span>`;
+        showError('signupMsg', data.error || 'Signup failed');
       }
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.innerHTML = `<div class="error">${msg}</div>`;
+      setTimeout(() => el.innerHTML = '', 4000);
     }
 
     async function loadChat() {
       const token = localStorage.getItem('striveai_token');
-      const res = await fetch('/api/memory', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
+      const res = await fetch('/api/memory', { headers: { 'Authorization': 'Bearer ' + token } });
       const data = await res.json();
       const box = document.getElementById('chatBox');
       box.innerHTML = '';
-      if (data.messages) {
-        data.messages.forEach(m => {
-          const div = document.createElement('div');
-          div.className = 'msg ' + m.role;
-          div.textContent = `${m.role === 'user' ? 'You' : 'AI'}: ${m.content}`;
-          box.appendChild(div);
-        });
-      }
+      (data.messages || []).forEach(m => addMessage(m.role, m.content));
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function addMessage(role, content) {
+      const box = document.getElementById('chatBox');
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.textContent = content;
+      box.appendChild(div);
       box.scrollTop = box.scrollHeight;
     }
 
@@ -124,25 +430,20 @@
       input.value = '';
 
       const token = localStorage.getItem('striveai_token');
-      const box = document.getElementById('chatBox');
-      box.innerHTML += `<div class="msg user">You: ${msg}</div>`;
-      box.scrollTop = box.scrollHeight;
+      addMessage('user', msg);
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ message: msg })
       });
       const data = await res.json();
+
       if (data.reply) {
-        box.innerHTML += `<div class="msg ai">AI: ${data.reply}</div>`;
+        addMessage('ai', data.reply);
       } else {
-        box.innerHTML += `<div class="msg error">Error: ${data.error || 'Failed'}</div>`;
+        addMessage('ai', data.error || 'AI is thinking...');
       }
-      box.scrollTop = box.scrollHeight;
     }
 
     function logout() {

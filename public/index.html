@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>striveAI</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 20px auto; padding: 0 10px; }
+    input, button { padding: 8px; margin: 5px 0; }
+    #login, #chatUI { display: none; }
+    #chatBox { height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: auto; margin: 10px 0; }
+    .msg { margin: 8px 0; }
+    .user { color: blue; }
+    .ai { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h2>striveAI — No External APIs</h2>
+
+  <div id="login">
+    <h3>Log In</h3>
+    <input type="text" id="loginUser" placeholder="Username" />
+    <input type="password" id="loginPass" placeholder="Password" />
+    <button onclick="login()">Log In</button>
+    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+    <div id="loginMsg"></div>
+  </div>
+
+  <div id="signup" style="display:none;">
+    <h3>Sign Up</h3>
+    <input type="text" id="signupUser" placeholder="Username" />
+    <input type="password" id="signupPass" placeholder="Password (min 6 chars)" />
+    <button onclick="signup()">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Log In</a></p>
+    <div id="signupMsg"></div>
+  </div>
+
+  <div id="chatUI">
+    <h3>Chat with striveAI</h3>
+    <div id="chatBox"></div>
+    <input type="text" id="userMsg" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMsg()" />
+    <button onclick="sendMsg()">Send</button>
+    <button onclick="logout()">Log Out</button>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('striveai_token');
+    if (token) showChat(); else showLogin();
+
+    function showLogin() {
+      document.getElementById('login').style.display = 'block';
+      document.getElementById('signup').style.display = 'none';
+      document.getElementById('chatUI').style.display = 'none';
+    }
+    function showSignup() {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('signup').style.display = 'block';
+    }
+    function showChat() {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('signup').style.display = 'none';
+      document.getElementById('chatUI').style.display = 'block';
+      loadChat();
+    }
+
+    async function login() {
+      const u = document.getElementById('loginUser').value;
+      const p = document.getElementById('loginPass').value;
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('striveai_token', data.token);
+        showChat();
+      } else {
+        document.getElementById('loginMsg').innerHTML = `<span class="error">${data.error || 'Login failed'}</span>`;
+      }
+    }
+
+    async function signup() {
+      const u = document.getElementById('signupUser').value;
+      const p = document.getElementById('signupPass').value;
+      const res = await fetch('/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('striveai_token', data.token);
+        showChat();
+      } else {
+        document.getElementById('signupMsg').innerHTML = `<span class="error">${data.error || 'Signup failed'}</span>`;
+      }
+    }
+
+    async function loadChat() {
+      const token = localStorage.getItem('striveai_token');
+      const res = await fetch('/api/memory', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const box = document.getElementById('chatBox');
+      box.innerHTML = '';
+      if (data.messages) {
+        data.messages.forEach(m => {
+          const div = document.createElement('div');
+          div.className = 'msg ' + m.role;
+          div.textContent = `${m.role === 'user' ? 'You' : 'AI'}: ${m.content}`;
+          box.appendChild(div);
+        });
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendMsg() {
+      const input = document.getElementById('userMsg');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+
+      const token = localStorage.getItem('striveai_token');
+      const box = document.getElementById('chatBox');
+      box.innerHTML += `<div class="msg user">You: ${msg}</div>`;
+      box.scrollTop = box.scrollHeight;
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      if (data.reply) {
+        box.innerHTML += `<div class="msg ai">AI: ${data.reply}</div>`;
+      } else {
+        box.innerHTML += `<div class="msg error">Error: ${data.error || 'Failed'}</div>`;
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function logout() {
+      localStorage.removeItem('striveai_token');
+      showLogin();
+    }
+  </script>
+</body>
+</html>

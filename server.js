@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -12,13 +13,13 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Routes
-app.use('/api/chat', require('./routes/chat'));     // ← Must export router
-app.use('/', require('./routes/index'));            // ← Must export router
+app.use('/api/chat', require('./routes/chat'));
+app.use('/', require('./routes/index'));
 
 // Load AI training data
 loadTrainingData();
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`striveAI running on port ${PORT}`);
+  console.log(`✅ striveAI running on port ${PORT}`);
 });

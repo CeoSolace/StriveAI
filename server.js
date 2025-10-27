@@ -17,7 +17,7 @@ app.use(express.static('public'));
 app.use(ipBanMiddleware); // ← IP ban check on every request
 
 // Database
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/striveai');
+mongoose.connect(process.env.MONGODB_URI);
 
 // Routes
 app.use('/auth', require('./routes/auth'));

@@ -1,53 +1,38 @@
+// routes/api.js
 const express = require('express');
-const User = require('../models/User');
-const Memory = require('../models/Memory');
-const { findRelevantResponse } = require('../utils/trainer');
-const { shouldBanForInput, banIp } = require('../utils/inputGuard');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+const { verifyToken } = require('../utils/auth');
 
-// Get conversation history
-router.get('/memory', async (req, res) => {
-  const userId = req.headers.authorization?.split(' ')[1];
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-  const mem = await Memory.findOne({ userId });
-  res.json({ messages: mem?.messages || [] });
+const MEMORY_FILE = path.join(__dirname, '../../data/memory.json');
+if (!fs.existsSync(MEMORY_FILE)) {
+  fs.writeFileSync(MEMORY_FILE, JSON.stringify({}));
+}
+
+// load memory for a user
+function getMemory(userId) {
+  const data = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8'));
+  return data[userId] || [];
+}
+
+// save memory for a user
+function saveMemory(userId, messages) {
+  const data = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8'));
+  data[userId] = messages;
+  fs.writeFileSync(MEMORY_FILE, JSON.stringify(data, null, 2));
+}
+
+// GET /api/memory → return chat history
+router.get('/memory', verifyToken, (req, res) => {
+  const msgs = getMemory(req.user.id);
+  res.json({ messages: msgs });
 });
 
-// Chat endpoint
-router.post('/chat', async (req, res) => {
-  const userId = req.headers.authorization?.split(' ')[1];
-  const { message } = req.body;
-  const ip = req.clientIp;
-
-  if (!userId || !message) {
-    return res.status(400).json({ error: 'Missing token or message' });
-  }
-
-  // Validate user exists
-  const user = await User.findById(userId);
-  if (!user) return res.status(401).json({ error: 'Invalid token' });
-
-  // 🚫 CHECK FOR BANNABLE INPUT
-  if (shouldBanForInput(message)) {
-    await banIp(ip);
-    return res.status(403).json({ error: 'Content violation. IP banned.' });
-  }
-
-  // Save user message
-  let mem = await Memory.findOne({ userId });
-  if (!mem) {
-    mem = new Memory({ userId, messages: [] });
-  }
-  mem.messages.push({ role: 'user', content: message });
-  mem.lastActive = new Date();
-  await mem.save();
-
-  // Generate AI response
-  const aiReply = findRelevantResponse(message);
-  mem.messages.push({ role: 'ai', content: aiReply });
-  await mem.save();
-
-  res.json({ reply: aiReply });
+// (optional) clear history
+router.delete('/memory', verifyToken, (req, res) => {
+  saveMemory(req.user.id, []);
+  res.json({ success: true });
 });
 
 module.exports = router;

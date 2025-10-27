@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: striveai
+    env: node
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        fromDatabase:
+          name: striveai-db
+          property: connectionString
+    plan: free
+
+databases:
+  - name: striveai-db
+    databaseName: striveai
+    region: oregon
+    plan: free

@@ -1,26 +1,28 @@
 // server.js
+require('./utils/db');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { loadTrainingData } = require('./utils/trainer');
+const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// ---- ROUTES ----
-app.use('/auth', require('./routes/auth'));           // /auth/login, /auth/signup
-app.use('/api', require('./routes/api'));             // /api/memory (protected)
-app.use('/api/chat', require('./routes/chat'));       // protected chat
-app.use('/', require('./routes/index'));              // serve index.html
+const auth = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch { res.status(401).json({ error: 'Invalid token' }); }
+};
 
-// Load AI knowledge
-loadTrainingData();
+app.use('/auth', require('./routes/auth'));
+app.use('/api', auth, require('./routes/api'));
+app.use('/api/chat', auth, require('./routes/chat'));
+app.use('/', require('./routes/index'));
 
-app.listen(PORT, () => {
-  console.log(`striveAI running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`striveAI running on port ${PORT}`));

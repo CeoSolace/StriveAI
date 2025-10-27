@@ -10,16 +10,16 @@ const PORT = process.env.PORT || 10000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
-app.use('/api/chat', require('./routes/chat'));
-app.use('/', require('./routes/index'));
+app.use('/api/chat', require('./routes/chat'));   // <-- router
+app.use('/', require('./routes/index'));          // <-- router
 
-// Load AI training data
+// Load knowledge
 loadTrainingData();
 
-// Start server
+// Start
 app.listen(PORT, () => {
-  console.log(`✅ striveAI running on port ${PORT}`);
+  console.log(`striveAI listening on ${PORT}`);
 });
